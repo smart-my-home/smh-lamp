@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 install: sh installXenial.sh
 script: sh buildXenial.sh
 deploy:
@@ -10,4 +10,3 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    
