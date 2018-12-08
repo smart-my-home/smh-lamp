@@ -1,8 +1,3 @@
-/*
- * This example shows how to use same firmware for multiple similar accessories
- * without name conflicts. It uses last 3 bytes of accessory's MAC address as
- * accessory name suffix.
- */
 #include <stdio.h>
 #include <espressif/esp_wifi.h>
 #include <espressif/esp_sta.h>
@@ -76,22 +71,19 @@ void led_on_set(homekit_value_t value) {
 }
 
 
-homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Sample LED");
-
-
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(.id=1, .category=homekit_accessory_category_lightbulb, .services=(homekit_service_t*[]){
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION, .characteristics=(homekit_characteristic_t*[]){
-            &name,
-            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "HaPK"),
+            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
+            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "smartMyHome"),
             HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "037A2BABF19D"),
-            HOMEKIT_CHARACTERISTIC(MODEL, "MyLED"),
+            HOMEKIT_CHARACTERISTIC(MODEL, "esp8266"),
             HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"),
             HOMEKIT_CHARACTERISTIC(IDENTIFY, led_identify),
             NULL
         }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "Sample LED"),
+            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
             HOMEKIT_CHARACTERISTIC(
                 ON, false,
                 .getter=led_on_get,
@@ -111,17 +103,6 @@ homekit_server_config_t config = {
 
 void user_init(void) {
     uart_set_baud(0, 115200);
-
-    uint8_t macaddr[6];
-    sdk_wifi_get_macaddr(STATION_IF, macaddr);
-
-    int name_len = snprintf(NULL, 0, "Sample LED-%02X%02X%02X",
-                            macaddr[3], macaddr[4], macaddr[5]);
-    char *name_value = malloc(name_len+1);
-    snprintf(name_value, name_len+1, "Sample LED-%02X%02X%02X",
-             macaddr[3], macaddr[4], macaddr[5]);
-
-    name.value = HOMEKIT_STRING(name_value);
 
     wifi_init();
     led_init();

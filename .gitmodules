@@ -16,3 +16,9 @@
 [submodule "components/WS2812FX"]
 	path = components/WS2812FX
 	url = https://github.com/pcsaito/WS2812FX-rtos
+[submodule "sdk/esp-open-rtos"]
+	path = sdk/esp-open-rtos
+	url = https://github.com/SuperHouse/esp-open-rtos
+[submodule "sdk/esp-open-sdk"]
+	path = sdk/esp-open-sdk
+	url = https://github.com/pfalcon/esp-open-sdk
