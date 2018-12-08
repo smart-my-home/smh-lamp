@@ -12,6 +12,7 @@ COPY . /app
 RUN chown esp /app
 RUN chmod -R 777 /app
 WORKDIR /app
+RUN sudo -u esp sh -c "cd sdk/esp-open-rtos ; git submodule update --init --recursive ; cd .."
 RUN sudo -u esp sh -c "cd sdk/esp-open-sdk && make toolchain esptool libhal STANDALONE=n"
 RUN sudo -u esp sh ./docker.sh
 CMD python -m SimpleHTTPServer 8888
