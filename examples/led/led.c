@@ -74,16 +74,16 @@ void led_on_set(homekit_value_t value) {
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(.id=1, .category=homekit_accessory_category_lightbulb, .services=(homekit_service_t*[]){
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "Sample LED"),
-            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "HaPK"),
+            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
+            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "smartMyHome"),
             HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "037A2BABF19D"),
-            HOMEKIT_CHARACTERISTIC(MODEL, "MyLED"),
+            HOMEKIT_CHARACTERISTIC(MODEL, "espLED"),
             HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"),
             HOMEKIT_CHARACTERISTIC(IDENTIFY, led_identify),
             NULL
         }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "Sample LED"),
+            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
             HOMEKIT_CHARACTERISTIC(
                 ON, false,
                 .getter=led_on_get,
