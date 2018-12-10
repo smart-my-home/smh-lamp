@@ -24,4 +24,3 @@ RUN mkdir /app
 COPY . /app
 WORKDIR /app
 RUN  make -C led
-CMD python -m SimpleHTTPServer $PORT

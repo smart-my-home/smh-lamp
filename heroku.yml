@@ -2,4 +2,4 @@ build:
   docker:
     web: Dockerfile.heroku
 run:
-  web: python -m SimpleHTTPServer 8888
+  web: python -m SimpleHTTPServer $PORT
