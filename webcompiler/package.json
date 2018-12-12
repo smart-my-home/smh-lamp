@@ -1,0 +1,14 @@
+{
+  "name": "webcompiler",
+  "version": "0.0.0",
+  "description": "A web compiler for smh-lamp.",
+  "main": "index.js",
+  "repository": "http://github.com/smart-my-home/smh-lamp",
+  "author": "Mihsa Marinenko <a0x77@icloud.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.4",
+    "uuid": "^3.3.2"
+  }
+}

@@ -5,6 +5,12 @@
 #include <esp8266.h>
 #include <FreeRTOS.h>
 #include <task.h>
+#include <lwip/api.h>
+/*#include <espressif/esp_common.h>
+#include <string.h>
+#include <httpd/httpd.h>
+*/
+
 
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
@@ -51,6 +57,80 @@ void led_identify_task(void *_args) {
     vTaskDelete(NULL);
 }
 
+void httpd_task(void *pvParameters)
+{
+    struct netconn *client = NULL;
+    struct netconn *nc = netconn_new(NETCONN_TCP);
+    if (nc == NULL) {
+        printf("Failed to allocate socket.\n");
+        vTaskDelete(NULL);
+    }
+    netconn_bind(nc, IP_ADDR_ANY, 80);
+    netconn_listen(nc);
+    char buf[512];
+    const char *webpage = {
+        "HTTP/1.1 200 OK\r\n"
+        "Content-type: text/html\r\n\r\n"
+        "<html><head><title>smartMyHome Production</title>"
+        "<style> div.main {"
+        "font-family: Arial;"
+        "padding: 0.01em 16px;"
+        "box-shadow: 2px 2px 1px 1px #d2d2d2;"
+        "background-color: #f1f1f1;}"
+        "</style></head>"
+        "<body><div class='main'>"
+        "<h3>Lamp HTTP Server, smartMyHome(0x77 prod.), API description:</h3> <br> On: <code>/on</code> <br> Off: <code>/off</code>"
+        "<p>URL: %s</p>"
+        "<p>Uptime: %d seconds</p>"
+        "<p>Free heap: %d bytes</p>"
+        "<button onclick=\"location.href='/on'\" type='button'>"
+        "LED On</button></p>"
+        "<button onclick=\"location.href='/off'\" type='button'>"
+        "LED Off</button></p>"
+        "</div></body></html>"
+    };
+    /* disable LED */
+    gpio_enable(LED_PIN, GPIO_OUTPUT);
+    gpio_write(LED_PIN, true);
+    while (1) {
+        err_t err = netconn_accept(nc, &client);
+        if (err == ERR_OK) {
+            struct netbuf *nb;
+            if ((err = netconn_recv(client, &nb)) == ERR_OK) {
+                void *data;
+                u16_t len;
+                netbuf_data(nb, &data, &len);
+                /* check for a GET request */
+                if (!strncmp(data, "GET ", 4)) {
+                    char uri[16];
+                    const int max_uri_len = 16;
+                    char *sp1, *sp2;
+                    /* extract URI */
+                    sp1 = data + 4;
+                    sp2 = memchr(sp1, ' ', max_uri_len);
+                    int len = sp2 - sp1;
+                    memcpy(uri, sp1, len);
+                    uri[len] = '\0';
+                    printf("API: [ \n URI: %s\n ] \n", uri);
+                    if (!strncmp(uri, "/on", max_uri_len))
+                        gpio_write(LED_PIN, false);
+                    else if (!strncmp(uri, "/off", max_uri_len))
+                        gpio_write(LED_PIN, true);
+                    snprintf(buf, sizeof(buf), webpage,
+                            uri,
+                            xTaskGetTickCount() * portTICK_PERIOD_MS / 1000,
+                            (int) xPortGetFreeHeapSize());
+                    netconn_write(client, buf, strlen(buf), NETCONN_COPY);
+                }
+            }
+            netbuf_delete(nb);
+        }
+        //printf("Closing connection\n");
+        netconn_close(client);
+        netconn_delete(client);
+    }
+}
+
 void led_identify(homekit_value_t _value) {
     printf("LED identify\n");
     xTaskCreate(led_identify_task, "LED identify", 128, NULL, 2, NULL);
@@ -74,7 +154,7 @@ void led_on_set(homekit_value_t value) {
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(.id=1, .category=homekit_accessory_category_lightbulb, .services=(homekit_service_t*[]){
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
+            HOMEKIT_CHARACTERISTIC(NAME, "LED"),
             HOMEKIT_CHARACTERISTIC(MANUFACTURER, "smartMyHome"),
             HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "037A2BABF19D"),
             HOMEKIT_CHARACTERISTIC(MODEL, "esp8266"),
@@ -83,7 +163,7 @@ homekit_accessory_t *accessories[] = {
             NULL
         }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "ESP LED"),
+            HOMEKIT_CHARACTERISTIC(NAME, "LED"),
             HOMEKIT_CHARACTERISTIC(
                 ON, false,
                 .getter=led_on_get,
@@ -102,8 +182,8 @@ homekit_server_config_t config = {
 };
 
 void user_init(void) {
-    uart_set_baud(0, 115200);
-
+    uart_set_baud(0, 115200);    	
+    xTaskCreate(&httpd_task, "http_server", 1024, NULL, 2, NULL);
     wifi_init();
     led_init();
     homekit_server_init(&config);

@@ -4,12 +4,12 @@
  PASSWORD=$(dialog --inputbox "Wifi Password" 0 0 --output-fd 1)
  LEDPIN=$(dialog --inputbox "LED PIN" 0 0 2 --output-fd 1)
 function outConf (){
-echo "// Config written."
+#echo "// Config written."
 echo "#define WIFI_SSID '$1'"
 echo "#define WIFI_PASSWORD '$2'"
 echo "#define LED_PIN $3"
 }
-dialog --title "Verify data" --backtitle "Check the data you entered" --yesno "Wifi ssid: $SSID \n Wifi Password: $PASSWORD \n Led pin: $LEDPIN" 7 60 --output-fd 1
+dialog --title "Verify data" --backtitle "smartMyHome Lamp by 0x77, Verify Data:" --yesno "Wifi ssid: $SSID \n Wifi Password: $PASSWORD \n Led pin: $LEDPIN" 7 60 --output-fd 1
 response=$?
 case $response in
     0) outConf $SSID $PASSWORD $LEDPIN ;;
