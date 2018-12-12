@@ -8,7 +8,7 @@
 
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
-#include "wifi.h"
+#include "conf.h"
 
 
 static void wifi_init() {
@@ -22,7 +22,7 @@ static void wifi_init() {
     sdk_wifi_station_connect();
 }
 
-const int led_gpio = 2;
+const int led_gpio = LED_PIN;
 bool led_on = false;
 
 void led_write(bool on) {
